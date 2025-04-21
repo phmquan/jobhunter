@@ -2,6 +2,7 @@ package vn.uit.jobhunter.domain;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -23,6 +24,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 import vn.uit.jobhunter.util.SecurityUtil;
+import vn.uit.jobhunter.util.constant.AccountStatus;
 import vn.uit.jobhunter.util.constant.Gender;
 
 @Entity
@@ -32,8 +34,8 @@ import vn.uit.jobhunter.util.constant.Gender;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     private String name;
 
@@ -44,12 +46,14 @@ public class User {
     private String password;
 
     private int age;
-
+    private AccountStatus status;
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
     private String address;
 
+    @Column(columnDefinition = "MEDIUMTEXT")
+    private String accessToken;
     @Column(columnDefinition = "MEDIUMTEXT")
     private String refreshToken;
 
@@ -57,7 +61,16 @@ public class User {
     private Instant updatedAt;
     private String createdBy;
     private String updatedBy;
+    @Column(columnDefinition = "TINYINT(1)")
+    private boolean emailVerified;
 
+    public boolean getEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
     @ManyToOne
     @JoinColumn(name = "company_id")
     private Company company;

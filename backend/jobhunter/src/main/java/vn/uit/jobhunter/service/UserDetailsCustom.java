@@ -1,6 +1,8 @@
 package vn.uit.jobhunter.service;
 
 import java.util.Collections;
+
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,7 +25,9 @@ public class UserDetailsCustom implements UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException("Username/password không hợp lệ");
         }
-
+        if (!user.getEmailVerified()) {
+            throw new BadCredentialsException("Email chưa được xác thực");
+        }
         return new User(
                 user.getEmail(),
                 user.getPassword(),
