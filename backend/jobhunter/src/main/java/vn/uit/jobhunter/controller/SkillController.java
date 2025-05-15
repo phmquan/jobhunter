@@ -42,9 +42,9 @@ public class SkillController {
 
     @PostMapping("")
     @ApiMessage("Create Skill")
-    public ResponseEntity<?> createSkill(@Valid @RequestBody Skill postSkill) {
+    public ResponseEntity<?> createSkill(@Valid @RequestBody Skill postSkill) throws IdInvalidException{
         if (skillService.findSkillByName(postSkill)) {
-            return ResponseEntity.badRequest().body("Kỹ năng đã tồn tại");
+            throw new IdInvalidException("Skill da ton tai");
         } else {
             return ResponseEntity.ok(skillService.handleCreateSkill(postSkill));
         }
