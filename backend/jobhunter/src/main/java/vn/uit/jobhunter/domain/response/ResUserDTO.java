@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import vn.uit.jobhunter.domain.Company;
 import vn.uit.jobhunter.util.constant.Gender;
 
 @Getter
@@ -21,6 +22,7 @@ public class ResUserDTO {
     private Gender gender;
     private String address;
     private int age;
+    private Company company;
     private Instant updatedAt;
     private Instant createdAt;
 }

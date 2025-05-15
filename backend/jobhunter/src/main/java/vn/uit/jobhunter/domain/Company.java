@@ -19,6 +19,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 import vn.uit.jobhunter.util.SecurityUtil;
+import jakarta.persistence.CascadeType;
 
 @Table(name = "companies")
 @Entity
@@ -48,7 +49,7 @@ public class Company {
 
     private String updatedBy;
 
-    @OneToMany(mappedBy = "company", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "company", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JsonIgnore
     List<User> users;
 

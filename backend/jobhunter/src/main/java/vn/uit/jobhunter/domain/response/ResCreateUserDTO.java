@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import lombok.Getter;
 import lombok.Setter;
+import vn.uit.jobhunter.domain.Company;
 import vn.uit.jobhunter.util.constant.Gender;
 
 @Getter
@@ -21,5 +22,6 @@ public class ResCreateUserDTO {
     private Gender gender;
     private String address;
     private int age;
+    private Company company;
     private Instant createdAt;
 }

@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import vn.uit.jobhunter.domain.Role;
@@ -16,29 +18,39 @@ import vn.uit.jobhunter.domain.response.ResCreateUserDTO;
 import vn.uit.jobhunter.domain.response.ResRegisterUserDTO;
 import vn.uit.jobhunter.domain.response.ResUpdateUserDTO;
 import vn.uit.jobhunter.domain.response.ResUserDTO;
+import vn.uit.jobhunter.domain.response.RestResponse;
 import vn.uit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.uit.jobhunter.domain.response.ResultPaginationDTO.Meta;
+import vn.uit.jobhunter.repository.CompanyRepository;
 import vn.uit.jobhunter.repository.RoleRepository;
 import vn.uit.jobhunter.repository.UserRepository;
 import vn.uit.jobhunter.util.constant.AccountStatus;
+import vn.uit.jobhunter.util.error.IdInvalidException;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final CompanyRepository companyRepository;
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository) {
+    public UserService(UserRepository userRepository, RoleRepository roleRepository,CompanyRepository companyRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.companyRepository=companyRepository;
     }
 
     public User handleCreateUser(User user) {
         return this.userRepository.save(user);
     }
 
-    public void handleDeleteUser(UUID id) {
+    public ResponseEntity<RestResponse<Void>> handleDeleteUserById(UUID id) {
         this.userRepository.deleteById(id);
+        RestResponse<Void> resp=new RestResponse<>();
+        resp.setStatusCode(HttpStatus.OK.value());
+        resp.setMessage("Xoa Thành Công");
+        resp.setData(null);
+        return ResponseEntity.ok().body(resp);
     }
 
     public User fetchUserById(UUID id) {
@@ -71,6 +83,7 @@ public class UserService {
                 item.getGender(),
                 item.getAddress(),
                 item.getAge(),
+                item.getCompany(),
                 item.getUpdatedAt(),
                 item.getCreatedAt()))
                 .collect(Collectors.toList());
@@ -80,18 +93,25 @@ public class UserService {
         return rs;
     }
 
-    public User handleUpdateUser(User reqUser) {
+    public ResponseEntity<ResUserDTO> handleUpdateUser(User reqUser) {
         User currentUser = this.fetchUserById(reqUser.getId());
         if (currentUser != null) {
             currentUser.setAddress(reqUser.getAddress());
             currentUser.setGender(reqUser.getGender());
             currentUser.setAge(reqUser.getAge());
             currentUser.setName(reqUser.getName());
+            currentUser.setCompany(reqUser.getCompany()==null?null:reqUser.getCompany());
 
             // update
             currentUser = this.userRepository.save(currentUser);
         }
-        return currentUser;
+        ResUserDTO updateUser=new ResUserDTO();
+        updateUser.setAddress(currentUser.getAddress());
+        updateUser.setGender(currentUser.getGender());
+        updateUser.setAge(currentUser.getAge());
+        updateUser.setName(currentUser.getName());
+        updateUser.setCompany(currentUser.getCompany());
+        return ResponseEntity.ok(updateUser);
     }
 
     public User handleGetUserByUsername(String username) {
@@ -187,5 +207,31 @@ public class UserService {
         User user = this.getUserById(id);
         user.setStatus(AccountStatus.BANNED);
         this.userRepository.save(user);
+    }
+    public ResponseEntity<ResCreateUserDTO> handleCreateUserAdmin(User postUser) throws IdInvalidException{
+        if(!userRepository.existsByEmail(postUser.getEmail())){
+            postUser.setEmailVerified(true);
+            User createUser=userRepository.save(postUser);
+
+            ResCreateUserDTO createUserDTO=new ResCreateUserDTO();
+            createUserDTO.setId(createUser.getId());
+            createUserDTO.setEmail(createUser.getEmail());
+            createUserDTO.setName(createUser.getName());
+            createUserDTO.setAge(createUser.getAge());
+            createUserDTO.setCreatedAt(createUser.getCreatedAt());
+            createUserDTO.setGender(createUser.getGender());
+            createUserDTO.setAddress(createUser.getAddress());
+            if(postUser.getCompany()!=null){
+                createUserDTO.setCompany(companyRepository.findById(postUser.getCompany().getId()).get());
+            }
+            else{
+                createUserDTO.setCompany(null);
+            }
+            return ResponseEntity.ok(createUserDTO);
+        }
+        else{
+            throw new IdInvalidException("Email đã tồn tại");
+        }
+
     }
 }

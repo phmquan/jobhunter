@@ -3,6 +3,9 @@ package vn.uit.jobhunter.domain;
 import java.time.Instant;
 import java.util.List;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -69,6 +72,7 @@ public class Job {
     @ManyToMany(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = {"jobs"})
     @JoinTable(name = "job_skill", joinColumns = @JoinColumn(name = "job_id"), inverseJoinColumns = @JoinColumn(name = "skill_id"))
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Skill> skills;
 
     @OneToMany(mappedBy = "job", fetch = FetchType.LAZY)
