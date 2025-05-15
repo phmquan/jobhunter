@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,9 +37,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 public class UserController {
 
     private final UserService userService;
-
-    UserController(UserService userService) {
+    private final PasswordEncoder passwordEncoder;
+    UserController(UserService userService,PasswordEncoder passwordEncoder) {
         this.userService = userService;
+        this.passwordEncoder=passwordEncoder;
     }
     
     @GetMapping
@@ -60,7 +62,7 @@ public class UserController {
 
     @PutMapping
     @ApiMessage("Update User")
-    public ResponseEntity<ResUserDTO> updateUser(@Valid @RequestBody User postUser ){
+    public ResponseEntity<ResUserDTO> updateUser( @RequestBody User postUser ){
         return userService.handleUpdateUser(postUser);
     }
 

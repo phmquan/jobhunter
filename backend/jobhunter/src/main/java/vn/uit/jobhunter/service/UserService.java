@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import vn.uit.jobhunter.domain.Role;
@@ -32,11 +33,13 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final CompanyRepository companyRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository,CompanyRepository companyRepository) {
+    public UserService(UserRepository userRepository, RoleRepository roleRepository,CompanyRepository companyRepository,PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.companyRepository=companyRepository;
+        this.passwordEncoder=passwordEncoder;
     }
 
     public User handleCreateUser(User user) {
@@ -95,21 +98,25 @@ public class UserService {
     public ResponseEntity<ResUserDTO> handleUpdateUser(User reqUser) {
         User currentUser = this.fetchUserById(reqUser.getId());
         if (currentUser != null) {
-            currentUser.setAddress(reqUser.getAddress());
-            currentUser.setGender(reqUser.getGender());
-            currentUser.setAge(reqUser.getAge());
-            currentUser.setName(reqUser.getName());
-            currentUser.setCompany(reqUser.getCompany()==null?null:reqUser.getCompany());
+            currentUser.setAddress(reqUser.getAddress()==null?currentUser.getAddress():reqUser.getAddress());
+            currentUser.setGender(reqUser.getGender()==null?currentUser.getGender():reqUser.getGender());
+            currentUser.setAge(reqUser.getAge()==0?currentUser.getAge():reqUser.getAge());
+            currentUser.setName(reqUser.getName()==null?currentUser.getName():reqUser.getName());
+            currentUser.setCompany(reqUser.getCompany()==null?null:companyRepository.findById(reqUser.getCompany().getId()).get());
 
             // update
             currentUser = this.userRepository.save(currentUser);
         }
         ResUserDTO updateUser=new ResUserDTO();
+        updateUser.setId(currentUser.getId());
+        updateUser.setEmail(currentUser.getEmail());
         updateUser.setAddress(currentUser.getAddress());
         updateUser.setGender(currentUser.getGender());
         updateUser.setAge(currentUser.getAge());
         updateUser.setName(currentUser.getName());
         updateUser.setCompany(currentUser.getCompany());
+        updateUser.setCreatedAt(currentUser.getCreatedAt());
+        updateUser.setUpdatedAt(currentUser.getUpdatedAt());
         return ResponseEntity.ok(updateUser);
     }
 
@@ -207,6 +214,8 @@ public class UserService {
     public ResponseEntity<ResCreateUserDTO> handleCreateUserAdmin(User postUser) throws IdInvalidException{
         if(!userRepository.existsByEmail(postUser.getEmail())){
             postUser.setEmailVerified(true);
+            String hashPassword = this.passwordEncoder.encode(postUser.getPassword());
+            postUser.setPassword(hashPassword);
             User createUser=userRepository.save(postUser);
 
             ResCreateUserDTO createUserDTO=new ResCreateUserDTO();
