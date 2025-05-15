@@ -5,23 +5,23 @@
 package vn.uit.jobhunter.domain.response;
 
 import java.time.Instant;
-import java.util.UUID;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import vn.uit.jobhunter.domain.Company;
 import vn.uit.jobhunter.util.constant.Gender;
 
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ResCreateUserDTO {
-
-    private UUID id;
-    private String name;
+    private Long id;
     private String email;
+    private String name;
+    private int age;
+    private Instant createdAt;
     private Gender gender;
     private String address;
-    private int age;
     private Company company;
-    private Instant createdAt;
 }

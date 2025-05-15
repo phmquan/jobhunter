@@ -1,22 +1,18 @@
 package vn.uit.jobhunter.domain.response;
 
 import java.time.Instant;
-import java.util.UUID;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import vn.uit.jobhunter.domain.Company;
 import vn.uit.jobhunter.util.constant.Gender;
 
-@Getter
-@Setter
-@AllArgsConstructor
+@Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class ResUserDTO {
-
-    private UUID id;
+    private Long id;
     private String email;
     private String name;
     private Gender gender;

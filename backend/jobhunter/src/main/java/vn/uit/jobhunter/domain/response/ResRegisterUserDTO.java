@@ -1,15 +1,17 @@
 package vn.uit.jobhunter.domain.response;
 
 import java.time.Instant;
-import java.util.UUID;
 
-@lombok.Getter
-@lombok.Setter
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ResRegisterUserDTO {
-
-    private UUID id;
-    private String name;
+    private Long id;
     private String email;
-    private String phoneNumber;
+    private String name;
     private Instant createdAt;
 }

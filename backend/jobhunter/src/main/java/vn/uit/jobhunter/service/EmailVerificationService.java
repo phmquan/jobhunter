@@ -30,7 +30,7 @@ public class EmailVerificationService {
     private final JavaMailSender mailSender;
 
     @Async
-    public void sendVerificationToken(UUID userId, String email) {
+    public void sendVerificationToken(Long userId, String email) {
         final var token = otpService.generateAndStoreOtp(userId);
 
         // Localhost URL with userId and OTP token
@@ -59,7 +59,7 @@ public class EmailVerificationService {
     }
 
     @Transactional
-    public void verifyEmail(UUID userId, String token) {
+    public void verifyEmail(Long userId, String token) {
         if (!otpService.isOtpValid(userId, token)) {
             throw new ResponseStatusException(BAD_REQUEST,
                     "Token invalid or expired");

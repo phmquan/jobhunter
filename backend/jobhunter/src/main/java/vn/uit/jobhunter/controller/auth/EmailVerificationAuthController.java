@@ -39,7 +39,7 @@ public class EmailVerificationAuthController {
 
     @GetMapping("/auth/email/verify")
     public ResponseEntity<Void> verifyEmail(
-            @RequestParam("uid") UUID userId, @RequestParam("t") String token) {
+            @RequestParam("uid") Long userId, @RequestParam("t") String token) {
 
         emailVerificationService.verifyEmail(userId, token);
 

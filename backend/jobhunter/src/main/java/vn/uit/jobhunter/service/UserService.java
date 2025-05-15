@@ -2,7 +2,6 @@ package vn.uit.jobhunter.service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -44,7 +43,7 @@ public class UserService {
         return this.userRepository.save(user);
     }
 
-    public ResponseEntity<RestResponse<Void>> handleDeleteUserById(UUID id) {
+    public ResponseEntity<RestResponse<Void>> handleDeleteUserById(Long id) {
         this.userRepository.deleteById(id);
         RestResponse<Void> resp=new RestResponse<>();
         resp.setStatusCode(HttpStatus.OK.value());
@@ -53,7 +52,7 @@ public class UserService {
         return ResponseEntity.ok().body(resp);
     }
 
-    public User fetchUserById(UUID id) {
+    public User fetchUserById(Long id) {
         Optional<User> userOptional = this.userRepository.findById(id);
         if (userOptional.isPresent()) {
             return userOptional.get();
@@ -161,10 +160,8 @@ public class UserService {
     public void updateUserToken(String token, String email) {
         User currentUser = this.handleGetUserByUsername(email);
         if (currentUser != null) {
-
             currentUser.setRefreshToken(token);
             this.userRepository.save(currentUser);
-
         }
     }
 
@@ -173,9 +170,7 @@ public class UserService {
         res.setId(user.getId());
         res.setEmail(user.getEmail());
         res.setName(user.getName());
-
         res.setCreatedAt(user.getCreatedAt());
-
         return res;
     }
 
@@ -200,7 +195,7 @@ public class UserService {
     }
 
     public User getUserById(String id) {
-        return this.userRepository.findById(UUID.fromString(id)).get();
+        return this.userRepository.findById(Long.parseLong(id)).get();
     }
 
     public void banUser(String id) {
@@ -208,6 +203,7 @@ public class UserService {
         user.setStatus(AccountStatus.BANNED);
         this.userRepository.save(user);
     }
+
     public ResponseEntity<ResCreateUserDTO> handleCreateUserAdmin(User postUser) throws IdInvalidException{
         if(!userRepository.existsByEmail(postUser.getEmail())){
             postUser.setEmailVerified(true);
@@ -232,6 +228,5 @@ public class UserService {
         else{
             throw new IdInvalidException("Email đã tồn tại");
         }
-
     }
 }

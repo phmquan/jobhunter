@@ -1,6 +1,5 @@
 package vn.uit.jobhunter.domain.response;
 
-import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -26,7 +25,7 @@ public class ResLoginDTO {
     @NoArgsConstructor
     public static class UserLogin {
 
-        private UUID id;
+        private Long id;
         private String email;
         private String name;
 //        private String role;

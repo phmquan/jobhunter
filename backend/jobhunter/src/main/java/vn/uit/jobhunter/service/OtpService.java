@@ -3,7 +3,6 @@ package vn.uit.jobhunter.service;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.Objects;
-import java.util.UUID;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -18,7 +17,7 @@ public class OtpService {
 
     private final RedisTemplate<String, String> redisTemplate;
 
-    public String generateAndStoreOtp(final UUID id) {
+    public String generateAndStoreOtp(final Long id) {
         final var otp = generateOtp("0123456789", 10);
         final var cacheKey = getCacheKey(id);
 
@@ -28,18 +27,18 @@ public class OtpService {
         return otp;
     }
 
-    public boolean isOtpValid(final UUID id, final String otp) {
+    public boolean isOtpValid(final Long id, final String otp) {
         final var cacheKey = getCacheKey(id);
         return Objects.equals(
                 redisTemplate.opsForValue().get(cacheKey), otp);
     }
 
-    public void deleteOtp(final UUID id) {
+    public void deleteOtp(final Long id) {
         final var cacheKey = getCacheKey(id);
         redisTemplate.delete(cacheKey);
     }
 
-    private String getCacheKey(UUID id) {
+    private String getCacheKey(Long id) {
         return "otp:%s".formatted(id);
     }
 

@@ -1,20 +1,20 @@
 package vn.uit.jobhunter.domain.response;
 
 import java.time.Instant;
-import java.util.UUID;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import vn.uit.jobhunter.util.constant.Gender;
 
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ResUpdateUserDTO {
-
-    private UUID id;
+    private Long id;
     private String name;
     private int age;
     private Instant updatedAt;
-    private String address;
     private Gender gender;
+    private String address;
 }
