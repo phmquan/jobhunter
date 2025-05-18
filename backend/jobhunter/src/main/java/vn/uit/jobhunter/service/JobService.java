@@ -1,6 +1,8 @@
 package vn.uit.jobhunter.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -9,16 +11,25 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import lombok.RequiredArgsConstructor;
 import vn.uit.jobhunter.domain.Job;
+import vn.uit.jobhunter.domain.Skill;
 import vn.uit.jobhunter.domain.response.RestResponse;
 import vn.uit.jobhunter.domain.response.ResultPaginationDTO;
+import vn.uit.jobhunter.repository.CompanyRepository;
 import vn.uit.jobhunter.repository.JobRepository;
+import vn.uit.jobhunter.repository.SkillRepository;
 import vn.uit.jobhunter.util.error.IdInvalidException;
 
 @Service
+@RequiredArgsConstructor
 public class JobService {
-    @Autowired
-    private JobRepository jobRepository;
+
+    private final JobRepository jobRepository;
+
+    private final CompanyRepository companyRepository;
+
+    private final SkillRepository skillRepository;
 
     public ResultPaginationDTO getAllJobs(int page, int size, String sort) {
         String[] sortParams = sort.split(",");
@@ -39,6 +50,17 @@ public class JobService {
     }
 
     public Job handleCreateJob(Job postJob) {
+        if(postJob.getCompany()!=null){
+            postJob.setCompany(companyRepository.findById(postJob.getCompany().getId()).get());
+        }
+        List<Long> postSkills=new ArrayList<>();
+        if(postJob.getSkills()!=null){
+            for(Skill skill:postJob.getSkills()){
+                postSkills.add(skill.getId());
+            }
+            postJob.setSkills(skillRepository.findByIdIn(postSkills));
+        }
+        postJob.setSkills(skillRepository.findByIdIn(postSkills));
         return jobRepository.save(postJob);
     }
 
@@ -58,8 +80,16 @@ public class JobService {
             updateJob.setStartDate(postJob.getStartDate());
             updateJob.setEndDate(postJob.getEndDate());
             updateJob.setActive(postJob.isActive());
-            updateJob.setCompany(postJob.getCompany());
-            updateJob.setSkills(postJob.getSkills());
+            if(postJob.getCompany()!=null){
+                updateJob.setCompany(companyRepository.findById(postJob.getCompany().getId()).get());
+            }
+            List<Long> postSkills=new ArrayList<>();
+            if(postJob.getSkills()!=null){
+            for(Skill skill:postJob.getSkills()){
+                postSkills.add(skill.getId());
+            }
+            updateJob.setSkills(skillRepository.findByIdIn(postSkills));
+            }
             return ResponseEntity.ok(jobRepository.save(updateJob));
         } else {
             throw new IdInvalidException("Id không tồn tại, không thể cập nhật");

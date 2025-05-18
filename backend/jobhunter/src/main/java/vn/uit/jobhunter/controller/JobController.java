@@ -42,12 +42,9 @@ public class JobController {
 
     @PostMapping("")
     @ApiMessage("Create Job")
-    public ResponseEntity<?> createJob(@Valid @RequestBody Job postJob) {
-        if (jobService.findJobByName(postJob)) {
-            return ResponseEntity.badRequest().body("Công việc đã tồn tại");
-        } else {
-            return ResponseEntity.ok(jobService.handleCreateJob(postJob));
-        }
+    public ResponseEntity<?> createJob(@Valid @RequestBody Job postJob) throws IdInvalidException{
+        return ResponseEntity.ok(jobService.handleCreateJob(postJob));
+        
     }
 
     @PutMapping("")
