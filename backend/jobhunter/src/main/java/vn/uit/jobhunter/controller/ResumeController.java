@@ -23,6 +23,7 @@ import vn.uit.jobhunter.domain.Resume;
 import vn.uit.jobhunter.domain.request.ReqCreateResumeDTO;
 import vn.uit.jobhunter.domain.request.ReqUpdateResumeDTO;
 import vn.uit.jobhunter.domain.response.ResResumeDTO;
+import vn.uit.jobhunter.domain.response.ResUpdateResumeDTO;
 import vn.uit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.uit.jobhunter.service.ResumeService;
 import vn.uit.jobhunter.util.anotation.ApiMessage;
@@ -56,12 +57,11 @@ public class ResumeController {
         return resumeService.handleCreateResume(dto);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("")
     @ApiMessage("Update resume status")
-    public ResponseEntity<ResResumeDTO> updateResume(
-            @PathVariable long id,
+    public ResponseEntity<ResUpdateResumeDTO> updateResume(
             @Valid @RequestBody ReqUpdateResumeDTO dto) {
-        return resumeService.handleUpdateResume(id, dto);
+        return resumeService.handleUpdateResume(dto);
     }
 
     @DeleteMapping("/{id}")

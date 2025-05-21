@@ -16,6 +16,7 @@ import vn.uit.jobhunter.domain.User;
 import vn.uit.jobhunter.domain.request.ReqCreateResumeDTO;
 import vn.uit.jobhunter.domain.request.ReqUpdateResumeDTO;
 import vn.uit.jobhunter.domain.response.ResResumeDTO;
+import vn.uit.jobhunter.domain.response.ResUpdateResumeDTO;
 import vn.uit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.uit.jobhunter.domain.response.ResultPaginationDTO.Meta;
 import vn.uit.jobhunter.domain.response.RestResponse;
@@ -73,11 +74,11 @@ public class ResumeServiceImpl implements ResumeService {
 
     @Override
     @Transactional
-    public ResponseEntity<ResResumeDTO> handleUpdateResume(long id, ReqUpdateResumeDTO dto) {
-        Resume resume = getResumeById(id);
+    public ResponseEntity<ResUpdateResumeDTO> handleUpdateResume(ReqUpdateResumeDTO dto) {
+        Resume resume = getResumeById(dto.getId());
         resume.setStatus(dto.getStatus());
         Resume updatedResume = resumeRepository.save(resume);
-        return ResponseEntity.ok(convertToDTO(updatedResume));
+        return ResponseEntity.ok(convertToUpdateDTO(updatedResume));
     }
 
     @Override
@@ -111,6 +112,10 @@ public class ResumeServiceImpl implements ResumeService {
         dto.setId(resume.getId());
         dto.setCreatedAt(resume.getCreatedAt());
         dto.setCreatedBy(resume.getCreatedBy());
+        return dto;
+    }
+    private ResUpdateResumeDTO convertToUpdateDTO(Resume resume){
+        ResUpdateResumeDTO dto=new ResUpdateResumeDTO(resume.getStatus());
         return dto;
     }
 } 
