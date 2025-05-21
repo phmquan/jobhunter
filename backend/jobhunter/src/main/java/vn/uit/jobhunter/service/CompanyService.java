@@ -50,6 +50,7 @@ public class CompanyService {
             Company updateCompany=companyRepository.findById(postCompany.getId()).isPresent()?companyRepository.findById(postCompany.getId()).get():null;
             updateCompany.setName(postCompany.getName());
             updateCompany.setAddress(postCompany.getAddress());
+            updateCompany.setLogo(postCompany.getLogo());
             updateCompany.setDescription(postCompany.getDescription());
             return ResponseEntity.ok(companyRepository.save(updateCompany));
         }

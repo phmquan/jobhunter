@@ -11,9 +11,9 @@ import vn.uit.jobhunter.util.constant.ResumeStateEnum;
 @Getter
 @Setter
 public class ReqCreateResumeDTO {
-    @NotBlank(message = "Email không được để trống")
-    @Email(message = "Email không đúng định dạng")
-    private String email;
+    // @NotBlank(message = "Email không được để trống")
+    // @Email(message = "Email không đúng định dạng")
+    // private String email;
 
     @NotBlank(message = "URL không được để trống")
     private String url;

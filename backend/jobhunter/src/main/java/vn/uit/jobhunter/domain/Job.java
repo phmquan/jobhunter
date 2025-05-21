@@ -77,6 +77,7 @@ public class Job {
 
     @OneToMany(mappedBy = "job", fetch = FetchType.LAZY)
     @JsonIgnore
+    @OnDelete(action = OnDeleteAction.CASCADE)
     List<Resume> resumes;
 
     @PrePersist
