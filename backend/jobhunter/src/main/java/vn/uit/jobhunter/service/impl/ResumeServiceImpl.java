@@ -62,6 +62,7 @@ public class ResumeServiceImpl implements ResumeService {
                 .orElseThrow(() -> new EntityNotFoundException("Job not found"));
 
         Resume resume = new Resume();
+        resume.setEmail(dto.getEmail());
         resume.setUrl(dto.getUrl());
         resume.setStatus(dto.getStatus());
         resume.setUser(user);
