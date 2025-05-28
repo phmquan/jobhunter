@@ -1,19 +1,25 @@
 package vn.uit.jobhunter.service;
 
+
 import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.http.*;
+import org.springframework.web.client.RestTemplate;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
 
 import lombok.RequiredArgsConstructor;
 import vn.uit.jobhunter.domain.Job;
 import vn.uit.jobhunter.domain.Skill;
+import vn.uit.jobhunter.domain.response.ResEmbeddingJobDes;
 import vn.uit.jobhunter.domain.response.RestResponse;
 import vn.uit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.uit.jobhunter.repository.CompanyRepository;
@@ -49,19 +55,45 @@ public class JobService {
         return new ResultPaginationDTO(meta, jobPage.getContent());
     }
 
-    public Job handleCreateJob(Job postJob) {
-        if(postJob.getCompany()!=null){
-            postJob.setCompany(companyRepository.findById(postJob.getCompany().getId()).get());
-        }
-        List<Long> postSkills=new ArrayList<>();
-        if(postJob.getSkills()!=null){
-            for(Skill skill:postJob.getSkills()){
-                postSkills.add(skill.getId());
-            }
-            postJob.setSkills(skillRepository.findByIdIn(postSkills));
+    public Job handleCreateJob(Job postJob) throws IdInvalidException {
+    if (postJob.getCompany() != null) {
+        postJob.setCompany(companyRepository.findById(postJob.getCompany().getId()).get());
+    }
+
+    List<Long> postSkills = new ArrayList<>();
+    if (postJob.getSkills() != null) {
+        for (Skill skill : postJob.getSkills()) {
+            postSkills.add(skill.getId());
         }
         postJob.setSkills(skillRepository.findByIdIn(postSkills));
-        return jobRepository.save(postJob);
+    }
+
+    Job jobAfterSave = jobRepository.save(postJob);
+    ResEmbeddingJobDes resEmbeddingJobDes=new ResEmbeddingJobDes(jobAfterSave.getId(),jobAfterSave.getName(),jobAfterSave.getLevel().toString(),jobAfterSave.getDescription());
+    // Send jobAfterSave to Python backend
+    sendJobToPythonBackend(resEmbeddingJobDes);
+
+    return jobAfterSave;
+}
+
+    private void sendJobToPythonBackend(ResEmbeddingJobDes job) throws IdInvalidException {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        
+        // Add logging
+        
+        
+        HttpEntity<ResEmbeddingJobDes> request = new HttpEntity<>(job, headers);
+        String pythonBackendUrl = "http://localhost:8000/embed-job-requirement/";
+        
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(pythonBackendUrl, request, String.class);
+            System.out.println("Response from Python backend: " + response.getBody());
+        } catch (Exception e) {
+            System.out.println("Error details: " + e.getMessage());  // Add error logging
+            throw new IdInvalidException("unable to embedding job description");
+        }
     }
 
     public boolean findJobByName(Job postJob) {
