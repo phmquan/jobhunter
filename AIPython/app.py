@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 import numpy as np
 
 from vector_db import initialize_index, add_embeddings_to_index, search_index
@@ -9,11 +9,22 @@ from generator import generate_response
 
 app = FastAPI()
 
+class Company(BaseModel):
+    id: str
+
+class Skill(BaseModel):
+    id: str
+
 class JobRequirement(BaseModel):
-    id: int  # Changed from str to int to match Long in Java
-    name: str  # Changed from title to name to match Spring Boot
-    level: str  # e.g., "Junior", "Mid-level", "Senior"
+    id: Optional[int] = None  # Made optional since it might not be sent from Java
+    name: str
+    location: Optional[str] = None
+    salary: Optional[str] = None
+    quantity: Optional[str] = None
+    level: str
     description: str
+    company: Optional[Company] = None
+    skills: Optional[List[Skill]] = None
 
 class Query(BaseModel):
     query_text: str
@@ -49,13 +60,17 @@ async def embed_job_requirement(job: JobRequirement):
     """Embeds a job requirement and stores it in the vector database."""
     try:
         # Generate embedding for the job description
-        embedding = generate_embedding(job.description)
+        embedding = get_embedding(job.description)
+        
+        # Use a default ID if none provided
+        doc_id = str(job.id) if job.id is not None else "temp_" + str(hash(job.description))
         
         # Add to vector database
-        add_embeddings_to_index(str(job.id), embedding, job.description)
+        add_embeddings_to_index(doc_id, embedding, job.description)
         
-        return {"message": "Job requirement embedded successfully", "id": job.id}
+        return {"message": "Job requirement embedded successfully", "id": doc_id}
     except Exception as e:
+        print(f"Error in embed_job_requirement: {str(e)}")  # Add logging
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/generate-response/")
@@ -71,16 +86,21 @@ async def generate_rag_response(query: Query):
             processed_docs.append({
                 "doc_id": str(doc["doc_id"]) if doc["doc_id"] is not None else None,  # Convert to string
                 "distance": float(doc["distance"]),  # Convert numpy.float32 to Python float
-                "index": int(doc["index"])  # Convert numpy.int64 to Python int
+                "index": int(doc["index"]),  # Convert numpy.int64 to Python int
+                "text": doc.get("text", "Text not found")  # Include the actual job requirement text
             })
         
         if not processed_docs:
              context = "No relevant documents found."
         else:
-             doc_ids = [doc['doc_id'] for doc in processed_docs if doc['doc_id'] is not None]
-             context = f"Relevant document IDs: {', '.join(doc_ids)}. (Actual content retrieval needed here)"
+             # Include both IDs and texts in the context
+             context_parts = []
+             for doc in processed_docs:
+                 if doc["doc_id"] is not None:
+                     context_parts.append(f"Job ID {doc['doc_id']}: {doc['text']}")
+             context = "\n".join(context_parts)
 
-        prompt = f"You are a career coach. Base on the context provider, Analyze the candidate's CV against the software developer job requirements and provide specific advice on skill gaps, strengths, and improvements.:\n\nContext: {context}\n\nQuestion: {query.query_text}\n\nAnswer:"
+        prompt = f"You are a career coach. Based on the context provided, analyze the candidate's CV against the software developer job requirements and provide specific advice on skill gaps, strengths, and improvements:\n\nContext: {context}\n\nQuestion: {query.query_text}\n\nAnswer:"
         
         response_text = generate_response(prompt)
         

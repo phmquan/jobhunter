@@ -5,11 +5,13 @@ import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { setUserLoginInfo } from '@/redux/slice/accountSlide';
 import styles from 'styles/auth.module.scss';
+import { useAppSelector } from '@/redux/hooks';
 
 const LoginPage = () => {
     const navigate = useNavigate();
     const [isSubmit, setIsSubmit] = useState(false);
     const dispatch = useDispatch();
+    const isAuthenticated = useAppSelector(state => state.account.isAuthenticated);
 
     let location = useLocation();
     let params = new URLSearchParams(location.search);
@@ -17,7 +19,7 @@ const LoginPage = () => {
 
     useEffect(() => {
         //đã login => redirect to '/'
-        if (localStorage.getItem('access_token')) {
+        if (isAuthenticated) {
             // navigate('/');
             window.location.href = '/';
         }
@@ -31,7 +33,6 @@ const LoginPage = () => {
 
         if (res?.data) {
             localStorage.setItem('access_token', res.data.access_token);
-            console.log(res.data.user)
             dispatch(setUserLoginInfo(res.data.user))
             message.success('Đăng nhập tài khoản thành công!');
             window.location.href = callback ? callback : '/';

@@ -97,6 +97,7 @@ const RegisterPage = () => {
                                 >
                                     <Option value="MALE">Nam</Option>
                                     <Option value="FEMALE">Nữ</Option>
+                                    <Option value="OTHER">Khác</Option>
                                 </Select>
                             </Form.Item>
 
