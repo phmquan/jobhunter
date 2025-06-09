@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 import numpy as np
@@ -8,6 +9,22 @@ from embedding import initialize_embedding_model, get_embedding, embedding_model
 from generator import generate_response
 
 app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:4173",  # Added for Vite dev server
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:4173",  # Added for Vite dev server
+        "http://127.0.0.1:3000"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class Company(BaseModel):
     id: str
@@ -100,7 +117,7 @@ async def generate_rag_response(query: Query):
                      context_parts.append(f"Job ID {doc['doc_id']}: {doc['text']}")
              context = "\n".join(context_parts)
 
-        prompt = f"You are a career coach. Based on the context provided, analyze the candidate's CV against the software developer job requirements and provide specific advice on skill gaps, strengths, and improvements:\n\nContext: {context}\n\nQuestion: {query.query_text}\n\nAnswer:"
+        prompt = f"You are a career coach. Based on the job requirement, analyze the candidate's CV against the software developer job requirements and provide specific advice on skill gaps, strengths, and improvements:\n\nContext: {context}\n\nQuestion: {query.query_text}\n\nAnswer:"
         
         response_text = generate_response(prompt)
         

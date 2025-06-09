@@ -169,4 +169,10 @@ public class ResumeService {
 
         return rs;
     }
+
+    public Optional<Resume> fetchLatestResumeByCurrentUser() {
+        String email = SecurityUtil.getCurrentUserLogin().orElse("");
+        if (email.isEmpty()) return Optional.empty();
+        return this.resumeRepository.findTopByEmailOrderByCreatedAtDesc(email);
+    }
 }

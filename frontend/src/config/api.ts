@@ -1,6 +1,13 @@
 import { IBackendRes, ICompany, IAccount, IUser, IModelPaginate, IGetAccount, IJob, IResume, IPermission, IRole, ISkill, ISubscribers } from '@/types/backend';
 import axios from 'config/axios-customize';
 
+export const API_BASE_URL = 'http://localhost:8000';
+
+export const API_ENDPOINTS = {
+  GENERATE_RESPONSE: `${API_BASE_URL}/generate-response/`,
+  EMBED_JOB_REQUIREMENT: `${API_BASE_URL}/embed-job-requirement/`,
+};
+
 /**
  * 
 Module Auth

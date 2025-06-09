@@ -30,9 +30,11 @@ import ClientJobDetailPage from './pages/job/detail';
 import ClientCompanyPage from './pages/company';
 import ClientCompanyDetailPage from './pages/company/detail';
 import JobTabs from './pages/admin/job/job.tabs';
+import ChatbotPopup from './components/share/ChatbotPopup';
 
 const LayoutClient = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [isChatbotVisible, setIsChatbotVisible] = useState(false);
   const location = useLocation();
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -50,6 +52,10 @@ const LayoutClient = () => {
         <Outlet context={[searchTerm, setSearchTerm]} />
       </div>
       <Footer />
+      <ChatbotPopup 
+        isVisible={isChatbotVisible} 
+        onToggle={() => setIsChatbotVisible(!isChatbotVisible)} 
+      />
     </div>
   )
 }

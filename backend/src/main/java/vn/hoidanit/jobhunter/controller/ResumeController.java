@@ -101,4 +101,14 @@ public class ResumeController {
 
         return ResponseEntity.ok().body(this.resumeService.fetchResumeByUser(pageable));
     }
+
+    @GetMapping("/resumes/by-user/latest")
+    @ApiMessage("Get the latest resume by user")
+    public ResponseEntity<ResFetchResumeDTO> fetchLatestResumeByUser() {
+        Optional<Resume> latestResume = this.resumeService.fetchLatestResumeByCurrentUser();
+        if (latestResume.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok().body(this.resumeService.getResume(latestResume.get()));
+    }
 }

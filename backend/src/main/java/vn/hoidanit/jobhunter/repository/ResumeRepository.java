@@ -6,8 +6,10 @@ import org.springframework.stereotype.Repository;
 
 import vn.hoidanit.jobhunter.domain.Resume;
 
+import java.util.Optional;
+
 @Repository
 public interface ResumeRepository extends JpaRepository<Resume, Long>,
         JpaSpecificationExecutor<Resume> {
-
+    Optional<Resume> findTopByEmailOrderByCreatedAtDesc(String email);
 }
