@@ -5,14 +5,30 @@
   z-index: 1000;
 
   .chatbot-toggle-button {
-    width: 60px;
-    height: 60px;
+    width: 80px !important;
+    height: 80px !important;
+    min-width: 80px !important;
+    min-height: 80px !important;
+    max-width: 80px !important;
+    max-height: 80px !important;
+    border-radius: 50% !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     transition: all 0.3s ease;
+    font-size: 40px;
+    padding: 0 !important;
+    border: none;
     
     &:hover {
       transform: scale(1.1);
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+    
+    .anticon {
+      font-size: 40px;
+      line-height: 1;
     }
   }
 }

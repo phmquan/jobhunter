@@ -117,7 +117,7 @@ async def generate_rag_response(query: Query):
                      context_parts.append(f"Job ID {doc['doc_id']}: {doc['text']}")
              context = "\n".join(context_parts)
 
-        prompt = f"You are a career coach. Based on the job requirement, analyze the candidate's CV against the software developer job requirements and provide specific advice on skill gaps, strengths, and improvements:\n\nContext: {context}\n\nQuestion: {query.query_text}\n\nAnswer:"
+        prompt = f"You are a career coach. Based on the job requirement, analyze the candidate's CV against the software developer job requirements and provide specific advice on skill gaps, strengths, and improvements. If the user is not asking to improve their CV, just answer the question without context:\n\nContext: {context}\n\nQuestion: {query.query_text}\n\nAnswer:"
         
         response_text = generate_response(prompt)
         

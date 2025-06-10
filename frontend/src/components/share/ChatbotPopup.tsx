@@ -4,7 +4,9 @@ import { MessageOutlined, CloseOutlined, SendOutlined, RobotOutlined, UserOutlin
 import axios from 'axios';
 import { API_ENDPOINTS } from '@/config/api';
 import * as pdfjsLib from 'pdfjs-dist';
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.js`;
+// Vite-compatible worker import for pdfjs-dist
+import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 import './ChatbotPopup.scss';
 
 interface Message {
@@ -19,20 +21,23 @@ interface ChatbotPopupProps {
   onToggle: () => void;
 }
 
-const extractTextFromPdfUrl = async (pdfUrl: string): Promise<string> => {
-  try {
-    const loadingTask = pdfjsLib.getDocument(pdfUrl);
-    const pdf = await loadingTask.promise;
-    let text = '';
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      text += content.items.map((item: any) => item.str).join(' ') + '\n';
-    }
-    return text;
-  } catch (err) {
-    return '';
+const fetchPdfAsBlob = async (pdfUrl: string): Promise<Blob> => {
+  const response = await fetch(pdfUrl, { mode: 'cors' });
+  if (!response.ok) throw new Error('Failed to fetch PDF');
+  return await response.blob();
+};
+
+const extractTextFromPdfBlob = async (pdfBlob: Blob): Promise<string> => {
+  const arrayBuffer = await pdfBlob.arrayBuffer();
+  const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+  const pdf = await loadingTask.promise;
+  let text = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map((item: any) => item.str).join(' ') + '\n';
   }
+  return text;
 };
 
 const ChatbotPopup: React.FC<ChatbotPopupProps> = ({ isVisible, onToggle }) => {
@@ -64,10 +69,14 @@ const ChatbotPopup: React.FC<ChatbotPopupProps> = ({ isVisible, onToggle }) => {
           },
         });
         console.log('Resume response:', res);
-        const resume = res?.data;
+        const resume = res?.data.data;
         if (resume && resume.url) {
-          const pdfUrl = resume.url;
-          const text = await extractTextFromPdfUrl(pdfUrl);
+          const pdfUrl = resume.url.startsWith('resume/')
+            ? `http://localhost:8080/api/v1/files/${resume.url}`
+            : `http://localhost:8080/api/v1/files/${resume.url}`;
+          console.log('PDF URL:', pdfUrl);
+          const pdfBlob = await fetchPdfAsBlob(pdfUrl);
+          const text = await extractTextFromPdfBlob(pdfBlob);
           setCvText(text);
         } else {
           setCvText('');
