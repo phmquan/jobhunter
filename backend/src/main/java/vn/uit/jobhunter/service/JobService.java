@@ -1,6 +1,6 @@
 package vn.uit.jobhunter.service;
 
-import org.springframework.http.*;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -9,8 +9,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
+
+import lombok.AllArgsConstructor;
 import vn.uit.jobhunter.domain.Company;
 import vn.uit.jobhunter.domain.Job;
 import vn.uit.jobhunter.domain.Skill;
@@ -21,21 +22,23 @@ import vn.uit.jobhunter.domain.response.job.ResUpdateJobDTO;
 import vn.uit.jobhunter.repository.CompanyRepository;
 import vn.uit.jobhunter.repository.JobRepository;
 import vn.uit.jobhunter.repository.SkillRepository;
+import vn.uit.jobhunter.service.mapper.JobMapperDTO;
+import vn.uit.jobhunter.service.pagination.PaginationHelper;
+import vn.uit.jobhunter.service.rag_service.PythonBackendService;
+import vn.uit.jobhunter.service.validation.JobValidator;
 
 @Service
+@AllArgsConstructor
 public class JobService {
 
     private final JobRepository jobRepository;
     private final SkillRepository skillRepository;
     private final CompanyRepository companyRepository;
+    private final PythonBackendService pythonBackendService;
+    private final JobMapperDTO jobMapperDTO;
+    private final PaginationHelper paginationHelper;
+    private final JobValidator jobValidator;
 
-    public JobService(JobRepository jobRepository,
-            SkillRepository skillRepository,
-            CompanyRepository companyRepository) {
-        this.jobRepository = jobRepository;
-        this.skillRepository = skillRepository;
-        this.companyRepository = companyRepository;
-    }
 
     public Optional<Job> fetchJobById(long id) {
         return this.jobRepository.findById(id);
@@ -44,81 +47,36 @@ public class JobService {
     public ResCreateJobDTO create(Job j) {
         // check skills
         if (j.getSkills() != null) {
-            List<Long> reqSkills = j.getSkills()
-                    .stream().map(x -> x.getId())
-                    .collect(Collectors.toList());
-
-            List<Skill> dbSkills = this.skillRepository.findByIdIn(reqSkills);
-            j.setSkills(dbSkills);
+            List<Long> reqSkills = j.getSkills().stream().map(Skill::getId).collect(Collectors.toList());
+            j.setSkills(jobValidator.fetchSkillsIfExist(reqSkills));
         }
 
-        // check company
+        // Handle company
         if (j.getCompany() != null) {
-            Optional<Company> cOptional = this.companyRepository.findById(j.getCompany().getId());
-            if (cOptional.isPresent()) {
-                j.setCompany(cOptional.get());
-            }
+            j.setCompany(jobValidator.fetchCompanyIfExist(j.getCompany().getId()));
         }
 
         // create job
         Job currentJob = this.jobRepository.save(j);
         ResEmbeddingJobDes resEmbeddingJobDes=new ResEmbeddingJobDes(currentJob.getId(),currentJob.getName(),currentJob.getLevel().toString(),currentJob.getDescription());
          // Send currentJob to Python backend
-        sendJobToPythonBackend(resEmbeddingJobDes);
+        pythonBackendService.sendJobToPythonBackend(resEmbeddingJobDes);
         // convert response
-        ResCreateJobDTO dto = new ResCreateJobDTO();
-        dto.setId(currentJob.getId());
-        dto.setName(currentJob.getName());
-        dto.setSalary(currentJob.getSalary());
-        dto.setQuantity(currentJob.getQuantity());
-        dto.setLocation(currentJob.getLocation());
-        dto.setLevel(currentJob.getLevel());
-        dto.setStartDate(currentJob.getStartDate());
-        dto.setEndDate(currentJob.getEndDate());
-        dto.setActive(currentJob.isActive());
-        dto.setCreatedAt(currentJob.getCreatedAt());
-        dto.setCreatedBy(currentJob.getCreatedBy());
-
-        if (currentJob.getSkills() != null) {
-            List<String> skills = currentJob.getSkills()
-                    .stream().map(item -> item.getName())
-                    .collect(Collectors.toList());
-            dto.setSkills(skills);
-        }
+        ResCreateJobDTO dto = jobMapperDTO.convertToCreateJobDTO(currentJob);
 
         return dto;
     }
-    private void sendJobToPythonBackend(ResEmbeddingJobDes job)  {
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        
-        
-        
-        HttpEntity<ResEmbeddingJobDes> request = new HttpEntity<>(job, headers);
-        String pythonBackendUrl = "http://localhost:8000/embed-job-requirement/";
-        ResponseEntity<String> response = restTemplate.postForEntity(pythonBackendUrl, request, String.class);
-        System.out.println("Response from Python backend: " + response.getBody());
-       
-    }
+    
     public ResUpdateJobDTO update(Job j, Job jobInDB) {
 
-        // check skills
         if (j.getSkills() != null) {
-            List<Long> reqSkills = j.getSkills()
-                    .stream().map(x -> x.getId())
-                    .collect(Collectors.toList());
-
-            List<Skill> dbSkills = this.skillRepository.findByIdIn(reqSkills);
-            jobInDB.setSkills(dbSkills);
+            List<Long> reqSkills = j.getSkills().stream().map(Skill::getId).collect(Collectors.toList());
+            jobInDB.setSkills(jobValidator.fetchSkillsIfExist(reqSkills));
         }
 
-        // check company
+        // Handle company via validator
         if (j.getCompany() != null) {
-            Optional<Company> cOptional = this.companyRepository.findById(j.getCompany().getId());
-            if (cOptional.isPresent()) {
-                jobInDB.setCompany(cOptional.get());
-            }
+            jobInDB.setCompany(jobValidator.fetchCompanyIfExist(j.getCompany().getId()));
         }
 
         // update correct info
@@ -135,25 +93,7 @@ public class JobService {
         Job currentJob = this.jobRepository.save(jobInDB);
 
         // convert response
-        ResUpdateJobDTO dto = new ResUpdateJobDTO();
-        dto.setId(currentJob.getId());
-        dto.setName(currentJob.getName());
-        dto.setSalary(currentJob.getSalary());
-        dto.setQuantity(currentJob.getQuantity());
-        dto.setLocation(currentJob.getLocation());
-        dto.setLevel(currentJob.getLevel());
-        dto.setStartDate(currentJob.getStartDate());
-        dto.setEndDate(currentJob.getEndDate());
-        dto.setActive(currentJob.isActive());
-        dto.setUpdatedAt(currentJob.getUpdatedAt());
-        dto.setUpdatedBy(currentJob.getUpdatedBy());
-
-        if (currentJob.getSkills() != null) {
-            List<String> skills = currentJob.getSkills()
-                    .stream().map(item -> item.getName())
-                    .collect(Collectors.toList());
-            dto.setSkills(skills);
-        }
+        ResUpdateJobDTO dto = jobMapperDTO.convertResUpdateJobDTO(currentJob);
 
         return dto;
     }
@@ -165,19 +105,7 @@ public class JobService {
     public ResultPaginationDTO fetchAll(Specification<Job> spec, Pageable pageable) {
         Page<Job> pageUser = this.jobRepository.findAll(spec, pageable);
 
-        ResultPaginationDTO rs = new ResultPaginationDTO();
-        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
-
-        mt.setPage(pageable.getPageNumber() + 1);
-        mt.setPageSize(pageable.getPageSize());
-
-        mt.setPages(pageUser.getTotalPages());
-        mt.setTotal(pageUser.getTotalElements());
-
-        rs.setMeta(mt);
-
-        rs.setResult(pageUser.getContent());
-
-        return rs;
+        
+        return paginationHelper.convertResultPagination(pageUser,pageable);
     }
 }
