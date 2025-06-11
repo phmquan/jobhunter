@@ -6,18 +6,19 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import lombok.AllArgsConstructor;
 import vn.uit.jobhunter.domain.Permission;
 import vn.uit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.uit.jobhunter.repository.PermissionRepository;
+import vn.uit.jobhunter.service.pagination.PaginationHelper;
 
 @Service
+@AllArgsConstructor
 public class PermissionService {
 
     private final PermissionRepository permissionRepository;
-
-    public PermissionService(PermissionRepository permissionRepository) {
-        this.permissionRepository = permissionRepository;
-    }
+    private final PaginationHelper paginationHelper;
+    
 
     public boolean isPermissionExist(Permission p) {
         return permissionRepository.existsByModuleAndApiPathAndMethod(
@@ -64,18 +65,7 @@ public class PermissionService {
 
     public ResultPaginationDTO getPermissions(Specification<Permission> spec, Pageable pageable) {
         Page<Permission> pPermissions = this.permissionRepository.findAll(spec, pageable);
-        ResultPaginationDTO rs = new ResultPaginationDTO();
-        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
-
-        mt.setPage(pageable.getPageNumber() + 1);
-        mt.setPageSize(pageable.getPageSize());
-
-        mt.setPages(pPermissions.getTotalPages());
-        mt.setTotal(pPermissions.getTotalElements());
-
-        rs.setMeta(mt);
-        rs.setResult(pPermissions.getContent());
-        return rs;
+        return paginationHelper.convertResultPagination(pPermissions, pageable);
     }
 
     public boolean isSameName(Permission p) {

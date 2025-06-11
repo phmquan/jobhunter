@@ -8,24 +8,21 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import lombok.AllArgsConstructor;
 import vn.uit.jobhunter.domain.Permission;
 import vn.uit.jobhunter.domain.Role;
 import vn.uit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.uit.jobhunter.repository.PermissionRepository;
 import vn.uit.jobhunter.repository.RoleRepository;
+import vn.uit.jobhunter.service.pagination.PaginationHelper;
 
 @Service
+@AllArgsConstructor
 public class RoleService {
 
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
-
-    public RoleService(
-            RoleRepository roleRepository,
-            PermissionRepository permissionRepository) {
-        this.roleRepository = roleRepository;
-        this.permissionRepository = permissionRepository;
-    }
+    private final PaginationHelper paginationHelper;
 
     public boolean existByName(String name) {
         return this.roleRepository.existsByName(name);
@@ -78,17 +75,6 @@ public class RoleService {
 
     public ResultPaginationDTO getRoles(Specification<Role> spec, Pageable pageable) {
         Page<Role> pRole = this.roleRepository.findAll(spec, pageable);
-        ResultPaginationDTO rs = new ResultPaginationDTO();
-        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
-
-        mt.setPage(pageable.getPageNumber() + 1);
-        mt.setPageSize(pageable.getPageSize());
-
-        mt.setPages(pRole.getTotalPages());
-        mt.setTotal(pRole.getTotalElements());
-
-        rs.setMeta(mt);
-        rs.setResult(pRole.getContent());
-        return rs;
+        return paginationHelper.convertResultPagination(pRole, pageable);
     }
 }
