@@ -16,8 +16,10 @@ import vn.uit.jobhunter.domain.User;
 import vn.uit.jobhunter.domain.response.ResUserDTO;
 import vn.uit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.uit.jobhunter.repository.UserRepository;
-import vn.uit.jobhunter.service.user.UserMapperDTO;
-import vn.uit.jobhunter.service.user.UserValidator;
+import vn.uit.jobhunter.service.mapper.UserMapperDTO;
+
+import vn.uit.jobhunter.service.pagination.PaginationHelper;
+import vn.uit.jobhunter.service.validation.ItemValidator;
 
 @Service
 @AllArgsConstructor
@@ -27,18 +29,18 @@ public class UserService {
     private final CompanyService companyService;
     private final RoleService roleService;
     private final UserMapperDTO userMapperDTO;
-    private final UserValidator userValidator;
+    private final ItemValidator itemValidator;
     private final PaginationHelper paginationHelper;
 
     public User handleCreateUser(User user) {
         // check company
-        if (userValidator.hasCompany(user.getCompany())) {
+        if (itemValidator.hasItem(user.getCompany())) {
             Optional<Company> companyOptional = this.companyService.findById(user.getCompany().getId());
             user.setCompany(companyOptional.isPresent() ? companyOptional.get() : null);
         }
 
         // check role
-        if (userValidator.hasRole(user.getRole())) {
+        if (itemValidator.hasItem(user.getRole())) {
             Role r = this.roleService.fetchById(user.getRole().getId());
             user.setRole(r != null ? r : null);
         }
@@ -46,7 +48,7 @@ public class UserService {
         return this.userRepository.save(user);
     }
 
-    public void handleDeleteUser(long id) {
+    public void deleteUser(long id) {
         this.userRepository.deleteById(id);
     }
 
@@ -65,10 +67,10 @@ public class UserService {
                 .stream().map(item -> this.userMapperDTO.convertToResUserDTO(item))
                 .collect(Collectors.toList());
 
-        return paginationHelper.convertResultPagination(pageUser, pageable, listUser);
+        return paginationHelper.convertListDTOResultPagination(pageUser, pageable, listUser);
     }
 
-    public User handleUpdateUser(User reqUser) {
+    public User updateUser(User reqUser) {
         User currentUser = this.fetchUserById(reqUser.getId());
         if (currentUser != null) {
             currentUser.setAddress(reqUser.getAddress());
@@ -77,13 +79,13 @@ public class UserService {
             currentUser.setName(reqUser.getName());
 
             // check company
-            if (userValidator.hasCompany(reqUser.getCompany())) {
+            if (itemValidator.hasItem(reqUser.getCompany())) {
                 Optional<Company> companyOptional = this.companyService.findById(reqUser.getCompany().getId());
                 currentUser.setCompany(companyOptional.isPresent() ? companyOptional.get() : null);
             }
 
             // check role
-            if (userValidator.hasRole(reqUser.getRole())) {
+            if (itemValidator.hasItem(reqUser.getRole())) {
                 Role r = this.roleService.fetchById(reqUser.getRole().getId());
                 currentUser.setRole(r != null ? r : null);
             }
@@ -92,7 +94,7 @@ public class UserService {
         return currentUser;
     }
 
-    public User handleGetUserByUsername(String username) {
+    public User getUserByUserName(String username) {
         return this.userRepository.findByEmail(username);
     }
 

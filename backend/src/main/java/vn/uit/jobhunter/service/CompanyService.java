@@ -8,24 +8,21 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import lombok.AllArgsConstructor;
 import vn.uit.jobhunter.domain.Company;
 import vn.uit.jobhunter.domain.User;
 import vn.uit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.uit.jobhunter.repository.CompanyRepository;
 import vn.uit.jobhunter.repository.UserRepository;
+import vn.uit.jobhunter.service.pagination.PaginationHelper;
 
 @Service
+@AllArgsConstructor
 public class CompanyService {
 
     private final CompanyRepository companyRepository;
     private final UserRepository userRepository;
-
-    public CompanyService(
-            CompanyRepository companyRepository,
-            UserRepository userRepository) {
-        this.companyRepository = companyRepository;
-        this.userRepository = userRepository;
-    }
+    private final PaginationHelper paginationHelper;
 
     public Company handleCreateCompany(Company c) {
         return this.companyRepository.save(c);
@@ -33,21 +30,11 @@ public class CompanyService {
 
     public ResultPaginationDTO handleGetCompany(Specification<Company> spec, Pageable pageable) {
         Page<Company> pCompany = this.companyRepository.findAll(spec, pageable);
-        ResultPaginationDTO rs = new ResultPaginationDTO();
-        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
-
-        mt.setPage(pageable.getPageNumber() + 1);
-        mt.setPageSize(pageable.getPageSize());
-
-        mt.setPages(pCompany.getTotalPages());
-        mt.setTotal(pCompany.getTotalElements());
-
-        rs.setMeta(mt);
-        rs.setResult(pCompany.getContent());
-        return rs;
+        
+        return paginationHelper.convertResultPagination(pCompany, pageable);
     }
 
-    public Company handleUpdateCompany(Company c) {
+    public Company updateCompany(Company c) {
         Optional<Company> companyOptional = this.companyRepository.findById(c.getId());
         if (companyOptional.isPresent()) {
             Company currentCompany = companyOptional.get();
@@ -60,7 +47,7 @@ public class CompanyService {
         return null;
     }
 
-    public void handleDeleteCompany(long id) {
+    public void deleteCompany(long id) {
         Optional<Company> comOptional = this.companyRepository.findById(id);
         if (comOptional.isPresent()) {
             Company com = comOptional.get();

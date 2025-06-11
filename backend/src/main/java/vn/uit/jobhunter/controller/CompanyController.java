@@ -48,13 +48,13 @@ public class CompanyController {
 
     @PutMapping("/companies")
     public ResponseEntity<Company> updateCompany(@Valid @RequestBody Company reqCompany) {
-        Company updatedCompany = this.companyService.handleUpdateCompany(reqCompany);
+        Company updatedCompany = this.companyService.updateCompany(reqCompany);
         return ResponseEntity.ok(updatedCompany);
     }
 
     @DeleteMapping("/companies/{id}")
     public ResponseEntity<Void> deleteCompany(@PathVariable("id") long id) {
-        this.companyService.handleDeleteCompany(id);
+        this.companyService.deleteCompany(id);
         return ResponseEntity.ok(null);
     }
 

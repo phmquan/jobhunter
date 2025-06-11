@@ -27,8 +27,8 @@ import vn.uit.jobhunter.domain.response.ResCreateUserDTO;
 import vn.uit.jobhunter.domain.response.ResLoginDTO;
 import vn.uit.jobhunter.service.EmailVerificationService;
 import vn.uit.jobhunter.service.UserService;
-import vn.uit.jobhunter.service.user.TokenService;
-import vn.uit.jobhunter.service.user.UserMapperDTO;
+import vn.uit.jobhunter.service.mapper.UserMapperDTO;
+import vn.uit.jobhunter.service.token.TokenService;
 import vn.uit.jobhunter.util.SecurityUtil;
 import vn.uit.jobhunter.util.annotation.ApiMessage;
 import vn.uit.jobhunter.util.error.IdInvalidException;
@@ -65,7 +65,7 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         ResLoginDTO res = new ResLoginDTO();
-        User currentUserDB = this.userService.handleGetUserByUsername(loginDto.getUsername());
+        User currentUserDB = this.userService.getUserByUserName(loginDto.getUsername());
         if (currentUserDB != null) {
             ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
                     currentUserDB.getId(),
@@ -106,7 +106,7 @@ public class AuthController {
                 ? SecurityUtil.getCurrentUserLogin().get()
                 : "";
 
-        User currentUserDB = this.userService.handleGetUserByUsername(email);
+        User currentUserDB = this.userService.getUserByUserName(email);
         ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin();
         ResLoginDTO.UserGetAccount userGetAccount = new ResLoginDTO.UserGetAccount();
 
@@ -141,7 +141,7 @@ public class AuthController {
 
         // issue new token/set refresh token as cookies
         ResLoginDTO res = new ResLoginDTO();
-        User currentUserDB = this.userService.handleGetUserByUsername(email);
+        User currentUserDB = this.userService.getUserByUserName(email);
         if (currentUserDB != null) {
             ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
                     currentUserDB.getId(),

@@ -24,7 +24,7 @@ import vn.uit.jobhunter.domain.response.ResUpdateUserDTO;
 import vn.uit.jobhunter.domain.response.ResUserDTO;
 import vn.uit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.uit.jobhunter.service.UserService;
-import vn.uit.jobhunter.service.user.UserMapperDTO;
+import vn.uit.jobhunter.service.mapper.UserMapperDTO;
 import vn.uit.jobhunter.util.annotation.ApiMessage;
 import vn.uit.jobhunter.util.error.IdInvalidException;
 
@@ -65,7 +65,7 @@ public class UserController {
             throw new IdInvalidException("User với id = " + id + " không tồn tại");
         }
 
-        this.userService.handleDeleteUser(id);
+        this.userService.deleteUser(id);
         return ResponseEntity.ok(null);
     }
 
@@ -95,7 +95,7 @@ public class UserController {
     @PutMapping("/users")
     @ApiMessage("Update a user")
     public ResponseEntity<ResUpdateUserDTO> updateUser(@RequestBody User user) throws IdInvalidException {
-        User ericUser = this.userService.handleUpdateUser(user);
+        User ericUser = this.userService.updateUser(user);
         if (ericUser == null) {
             throw new IdInvalidException("User với id = " + user.getId() + " không tồn tại");
         }

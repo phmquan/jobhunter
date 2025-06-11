@@ -1,4 +1,4 @@
-package vn.uit.jobhunter.service;
+package vn.uit.jobhunter.service.pagination;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ import vn.uit.jobhunter.domain.response.ResultPaginationDTO;
 
 @Component
 public class PaginationHelper {
-   public <T,U> ResultPaginationDTO convertResultPagination(Page<T> pageItem,Pageable pageable, List<U> listItem){
+   public <T,U> ResultPaginationDTO convertListDTOResultPagination(Page<T> pageItem,Pageable pageable, List<U> listItem){
         ResultPaginationDTO rs = new ResultPaginationDTO();
         ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
 
@@ -22,6 +22,20 @@ public class PaginationHelper {
 
         rs.setMeta(mt);
         rs.setResult(listItem);
+        return rs;
+   }
+   public <T> ResultPaginationDTO convertResultPagination(Page<T> pageItem, Pageable pageable){
+      ResultPaginationDTO rs = new ResultPaginationDTO();
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+
+        mt.setPages(pageItem.getTotalPages());
+        mt.setTotal(pageItem.getTotalElements());
+
+        rs.setMeta(mt);
+        rs.setResult(pageItem.getContent());
         return rs;
    }
 }

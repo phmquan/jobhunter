@@ -1,4 +1,4 @@
-package vn.uit.jobhunter.service.user;
+package vn.uit.jobhunter.service.token;
 
 import org.springframework.stereotype.Component;
 
