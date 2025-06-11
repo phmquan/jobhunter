@@ -1,4 +1,4 @@
-JobHunter
+# JobHunter
 JobHunter is a job hunting assistant application powered by LLM-based chat bot to provide job advice, resume review, and job requirement analysis.
 This project consists of:
 
