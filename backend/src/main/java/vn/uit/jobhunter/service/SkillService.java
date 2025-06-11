@@ -7,17 +7,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import lombok.AllArgsConstructor;
 import vn.uit.jobhunter.domain.Skill;
 import vn.uit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.uit.jobhunter.repository.SkillRepository;
+import vn.uit.jobhunter.service.pagination.PaginationHelper;
 
 @Service
+@AllArgsConstructor
 public class SkillService {
     private final SkillRepository skillRepository;
-
-    public SkillService(SkillRepository skillRepository) {
-        this.skillRepository = skillRepository;
-    }
+    private final PaginationHelper paginationHelper;
 
     public boolean isNameExist(String name) {
         return this.skillRepository.existsByName(name);
@@ -51,19 +51,6 @@ public class SkillService {
     public ResultPaginationDTO fetchAllSkills(Specification<Skill> spec, Pageable pageable) {
         Page<Skill> pageUser = this.skillRepository.findAll(spec, pageable);
 
-        ResultPaginationDTO rs = new ResultPaginationDTO();
-        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
-
-        mt.setPage(pageable.getPageNumber() + 1);
-        mt.setPageSize(pageable.getPageSize());
-
-        mt.setPages(pageUser.getTotalPages());
-        mt.setTotal(pageUser.getTotalElements());
-
-        rs.setMeta(mt);
-
-        rs.setResult(pageUser.getContent());
-
-        return rs;
+       return paginationHelper.convertResultPagination(pageUser, pageable);
     }
 }
